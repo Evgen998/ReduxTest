@@ -1,8 +1,6 @@
-import {
-    GET_PHOTOS_REQUEST,
-    GET_PHOTOS_FAIL,
-    GET_PHOTOS_SUCCESS
-} from '../constants/Page'
+export const GET_PHOTOS_REQUEST = 'GET_PHOTOS_REQUEST'
+export const GET_PHOTOS_SUCCESS = 'GET_PHOTOS_SUCCESS'
+export const GET_PHOTOS_FAIL = 'GET_PHOTOS_FAIL'
 
 let photosArr = []
 let cached = false
@@ -11,23 +9,22 @@ function makeYearPhotos(photos, selectedYear) {
     let createdYear, yearPhotos = []
 
     photos.forEach((item) => {
-        createdYear = new Date(item.created*1000).getFullYear()
+        createdYear = new Date(item.date*1000).getFullYear()
         if (createdYear === selectedYear ) {
         yearPhotos.push(item)
     }
 })
 
-    yearPhotos.sort((a,b) => b.likes.count-a.likes.count);
-
+    yearPhotos.sort((a, b) => b.likes.count - a.likes.count)
     return yearPhotos
 }
 
 function getMorePhotos(offset, count, year, dispatch) {
-    VK.Api.call('photos.getAll', {extended:1, count: count, offset: offset},(r) => { // eslint-disable-line no-undef
+    VK.Api.call('photos.getAll', {extended:1, count: count, offset: offset,  v: '5.80' },(r) => { // eslint-disable-line no-undef
         try {
-            if (offset <= r.response[0] - count) {
-        offset+=200;
-        photosArr = photosArr.concat(r.response)
+            photosArr = photosArr.concat(r.response.items)
+            if (offset <= r.response.count) {
+        offset+=200
         getMorePhotos(offset,count,year,dispatch)
     } else {
         let photos = makeYearPhotos(photosArr, year)
